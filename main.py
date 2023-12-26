@@ -30,9 +30,12 @@ class googleImageSearch():
 
     
 
-    def fetch_google_images(self, query):
+    def fetch_google_images(self, query, series_title):
         base_url = "https://www.googleapis.com/customsearch/v1"
         
+        if series_title:
+            query = "Anime Character "+ query+" in Anime Series "+series_title
+
         params = {
             'key': self.api_key,
             'cx': self.cx,
@@ -77,7 +80,7 @@ def LLMchain_wiki(text_prompt):
     # )
 
     ## OPENAI LLMS
-    llm = OpenAI(temperature=0.8)
+    llm = OpenAI(temperature=0.4)
 
     # chain = LLMChain(llm=llm, prompt=first_input_prompt, verbose=True, output_key='character_info', memory=character_name_memory)
     # doc = nlp(output_text)
@@ -89,7 +92,7 @@ def LLMchain_wiki(text_prompt):
         template="give the Title of the Anime, In which {name} appeared in the mentioned template in triple quotes\
             '''\
             Title:    \
-            Date relased: \
+            Date released: \
             ''' \  "
     )
 
@@ -148,7 +151,7 @@ if __name__ == '__main__':
                 btn = gr.Button("Generate images")
                 gallery = gr.Gallery(
                     label="Generated images", show_label=False, elem_id="gallery"
-                    , container=True, columns=[3], rows=[2], object_fit="cover", height=240, show_download_button=True, preview=True)
+                    , container=True, columns=[3], rows=[2], object_fit="cover", height=240, show_download_button=True, preview=False)
                 chara_info = gr.Textbox(label="Anime", lines=1)
 
             with gr.Column():
@@ -158,9 +161,11 @@ if __name__ == '__main__':
         # b2 = gr.Button("get image")
         
         b1.click(LLMchain_wiki, inputs=name_query, outputs=[chara_info, appearance_info, plot_info])
-
-        btn.click(gImageSearch.fetch_google_images, name_query, gallery)
-        
+        if chara_info:
+            # name_query = 
+            btn.click(gImageSearch.fetch_google_images, [name_query, chara_info], gallery)
+        else:
+            btn.click(gImageSearch.fetch_google_images, [name_query, None], gallery)
         # b2.click(fn=None, inputs=[], outputs=gr.Dropdown(choices=outputImages))
 
     demo.launch(share=True)
